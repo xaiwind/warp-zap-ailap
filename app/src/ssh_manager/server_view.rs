@@ -780,7 +780,16 @@ impl SshServerView {
         let startup_command_text = self.current_text(&self.startup_command_editor.clone(), ctx);
         let notes_text = self.current_text(&self.notes_editor.clone(), ctx);
 
-        let port: u16 = port_str.trim().parse().unwrap_or(22);
+        let port = match parse_port_field(&port_str) {
+            Ok(p) => p,
+            Err(()) => {
+                self.status = Some(StatusBanner::Error(crate::t!(
+                    "workspace-left-panel-ssh-manager-error-port-invalid"
+                )));
+                ctx.notify();
+                return;
+            }
+        };
         let host = host.trim().to_string();
         if host.is_empty() {
             self.status = Some(StatusBanner::Error(crate::t!(
@@ -828,7 +837,16 @@ impl SshServerView {
         let key_path_text = self.current_text(&self.key_path_editor.clone(), ctx);
         let credential_id = self.selected_onekey_credential_id.clone();
 
-        let port: u16 = port_str.trim().parse().unwrap_or(22);
+        let port = match parse_port_field(&port_str) {
+            Ok(p) => p,
+            Err(()) => {
+                self.status = Some(StatusBanner::Error(crate::t!(
+                    "workspace-left-panel-ssh-manager-error-port-invalid"
+                )));
+                ctx.notify();
+                return;
+            }
+        };
         let host = host.trim().to_string();
         if host.is_empty() {
             self.status = Some(StatusBanner::Error(crate::t!(
@@ -1874,6 +1892,23 @@ impl SshServerView {
             })
             .finish()
     }
+}
+
+/// 解析端口输入框:留空按 SSH 惯例默认 22,填了内容却解析不出来返回 `Err`。
+///
+/// 原先 `on_connect` / `on_test_connection` 都用 `parse().unwrap_or(22)`,
+/// 把非法输入静默降级成 22 —— 测试实际连的是 22 端口,却把该端口的认证失败
+/// 报成用户填的那个端口的失败,表现为「测试连接失败但实际连接成功」,
+/// 且界面上没有任何线索指向端口。
+///
+/// 注意 `"22"` 只是 `set_placeholder_text` 的灰色提示,输入框未被编辑时
+/// 内容是空串,所以留空必须显式落到默认值而不是走 parse 失败分支。
+fn parse_port_field(port_str: &str) -> Result<u16, ()> {
+    let trimmed = port_str.trim();
+    if trimmed.is_empty() {
+        return Ok(22);
+    }
+    trimmed.parse().map_err(|_| ())
 }
 
 fn make_editor(

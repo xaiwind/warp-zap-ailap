@@ -325,3 +325,27 @@ fn selecting_onekey_dropdown_item_does_not_rebuild_dropdown_while_it_is_borrowed
         });
     });
 }
+
+/// `parse_port_field`:留空默认 22,非法输入必须报错而不是静默降级。
+///
+/// 回归用例 —— 原先 `parse().unwrap_or(22)` 会把非法端口悄悄变成 22,
+/// 于是「测试连接」实际连的是 22 端口,把该端口的认证失败报成用户填的
+/// 那个端口的失败,表现为「测试失败但实际连接成功」。
+#[test]
+fn parse_port_field_defaults_and_rejects() {
+    // 留空 / 纯空白 → 默认 22(输入框里的 "22" 只是 placeholder,内容为空串)
+    assert_eq!(parse_port_field(""), Ok(22));
+    assert_eq!(parse_port_field("   "), Ok(22));
+
+    // 正常端口,允许前后空白
+    assert_eq!(parse_port_field("2222"), Ok(2222));
+    assert_eq!(parse_port_field(" 2222 "), Ok(2222));
+    assert_eq!(parse_port_field("22"), Ok(22));
+
+    // 非法输入必须 Err,不能静默变 22
+    assert_eq!(parse_port_field("2222x"), Err(()));
+    assert_eq!(parse_port_field("abc"), Err(()));
+    assert_eq!(parse_port_field("-1"), Err(()));
+    // 超出 u16 上限
+    assert_eq!(parse_port_field("65536"), Err(()));
+}
