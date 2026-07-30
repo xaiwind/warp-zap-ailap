@@ -53,6 +53,54 @@ fn custom_port_uses_dash_p() {
     );
 }
 
+/// 回归用例:自定义端口必须出现在密码测试的 argv 里,且位于 destination 之前。
+#[test]
+fn password_auth_cmd_args_keep_custom_port() {
+    let mut s = server();
+    s.port = 2222;
+    for allow_kbd in [false, true] {
+        let args = build_password_auth_cmd_args(&s, allow_kbd);
+        let p_idx = args.iter().position(|a| a == "-p").expect("missing -p");
+        assert_eq!(args[p_idx + 1], "2222");
+        let dest_idx = args
+            .iter()
+            .position(|a| a == "alice@1.2.3.4")
+            .expect("missing destination");
+        assert!(p_idx < dest_idx, "-p must precede destination: {args:?}");
+        assert_eq!(args.last().map(String::as_str), Some("echo ok"));
+    }
+}
+
+/// 阶段 2:放开 kbd-interactive,让只提供该方法的 PAM server 也能通过测试。
+/// (阶段 1 的行为由下方 `password_auth_args_no_keyboard_interactive` 与
+/// `password_auth_args_disable_kbd_interactive` 保护。)
+#[test]
+fn password_auth_stage_two_allows_keyboard_interactive() {
+    let args = build_password_auth_cmd_args(&server(), true);
+    assert!(
+        args.iter()
+            .any(|a| a == "PreferredAuthentications=password,keyboard-interactive"),
+        "stage 2 must offer kbd-interactive: {args:?}"
+    );
+    assert!(
+        !args
+            .iter()
+            .any(|a| a.starts_with("KbdInteractiveAuthentication")),
+        "stage 2 must not disable kbd-interactive: {args:?}"
+    );
+    // 两个阶段都要保留重试上限,避免 pam_faildelay 累积顶满 TEST_TIMEOUT。
+    assert!(args.iter().any(|a| a == "NumberOfPasswordPrompts=1"));
+}
+
+/// 只有"认证被拒"才触发阶段 2 重试;超时 / 网络错误不应被放大成两次。
+#[test]
+fn only_auth_rejection_triggers_retry() {
+    assert!(is_auth_rejection("Authentication failed: wrong password"));
+    assert!(!is_auth_rejection("Connection timeout"));
+    assert!(!is_auth_rejection("启动 ssh 失败: no such file"));
+    assert!(!is_auth_rejection("Unexpected output: stdout= stderr="));
+}
+
 #[test]
 fn key_auth_emits_dash_i() {
     let mut s = server();
@@ -98,10 +146,12 @@ fn test_connection_requires_password_for_password_auth() {
     let rt = tokio::runtime::Runtime::new().unwrap();
     let result = rt.block_on(test_connection(&s, None));
     assert_eq!(result.status, ConnectionStatus::Offline);
-    assert!(result
-        .error_message
-        .unwrap()
-        .contains("Password not provided"));
+    assert!(
+        result
+            .error_message
+            .unwrap()
+            .contains("Password not provided")
+    );
 }
 
 #[test]
@@ -111,10 +161,12 @@ fn test_connection_requires_password_for_onekey_auth() {
     let rt = tokio::runtime::Runtime::new().unwrap();
     let result = rt.block_on(test_connection(&s, None));
     assert_eq!(result.status, ConnectionStatus::Offline);
-    assert!(result
-        .error_message
-        .unwrap()
-        .contains("Password not provided"));
+    assert!(
+        result
+            .error_message
+            .unwrap()
+            .contains("Password not provided")
+    );
 }
 
 #[test]
@@ -204,13 +256,16 @@ fn build_ssh_args_does_not_emit_sshpass() {
 // author: logic
 // date: 2026-06-01
 
-/// 回归保护:`PreferredAuthentications` 必须只含 `password`,不能含
+/// 回归保护(**阶段 1**):`PreferredAuthentications` 必须只含 `password`,不能含
 /// `keyboard-interactive`。否则 stdin pipe + EOF 会触发 kbd-int PAM
 /// 重试链(`pam_faildelay` ~2s/次),把 10s `TEST_TIMEOUT` 顶满。
+///
+/// 阶段 2(`allow_keyboard_interactive = true`)才放开 kbd-int,仅在阶段 1
+/// 已被明确拒绝后触发,见 `password_auth_stage_two_allows_keyboard_interactive`。
 #[test]
 fn password_auth_args_no_keyboard_interactive() {
     let s = server();
-    let args = build_password_auth_cmd_args(&s);
+    let args = build_password_auth_cmd_args(&s, false);
     let joined = args.join(" ");
     assert!(
         !joined.contains("keyboard-interactive"),
@@ -232,14 +287,14 @@ fn password_auth_args_no_keyboard_interactive() {
     );
 }
 
-/// 回归保护:必须显式禁 kbd-interactive(客户端能力开关),
+/// 回归保护(**阶段 1**):必须显式禁 kbd-interactive(客户端能力开关),
 /// 不只靠 `PreferredAuthentications` 列表顺序(后者只约束 password
 /// 子方法)。OpenSSH 8.2+ 行为差异、与 server 端 `AuthenticationMethods`
 /// 交互时尤其需要这层 defense in depth。
 #[test]
 fn password_auth_args_disable_kbd_interactive() {
     let s = server();
-    let args = build_password_auth_cmd_args(&s);
+    let args = build_password_auth_cmd_args(&s, false);
     let joined = args.join(" ");
     assert!(
         joined.contains("KbdInteractiveAuthentication=no"),
@@ -253,7 +308,7 @@ fn password_auth_args_disable_kbd_interactive() {
 #[test]
 fn password_auth_args_ends_with_echo_ok_command() {
     let s = server();
-    let args = build_password_auth_cmd_args(&s);
+    let args = build_password_auth_cmd_args(&s, false);
     assert!(!args.is_empty(), "cmd_args is empty: {args:?}");
     let last = args.last().unwrap();
     assert_eq!(
@@ -274,7 +329,7 @@ fn password_auth_args_ends_with_echo_ok_command() {
 #[test]
 fn password_auth_args_destination_before_echo_ok_and_after_options() {
     let s = server();
-    let args = build_password_auth_cmd_args(&s);
+    let args = build_password_auth_cmd_args(&s, false);
     let joined = args.join(" ");
 
     // destination "alice@1.2.3.4" 必须出现在 "echo ok" 之前
@@ -415,4 +470,51 @@ fn windows_askpass_script_is_spawnable() {
         stdout.trim() == "dummy-pw-for-spawn-test",
         "askpass output mismatch: got {stdout:?}"
     );
+}
+
+/// 核心机制回归:askpass 脚本必须可执行、且 stdout 精确输出密码。
+///
+/// 这是「测试连接」在 GUI 启动的 App 里能否拿到密码的唯一通道 —— 早先
+/// 非 Windows 分支只做 stdin 注入,而 OpenSSH 的 `read_passphrase()` 读的是
+/// `/dev/tty`;打包成 .app 从 Dock 启动后进程没有控制终端,密码根本没送出去,
+/// server 报 `Permission denied (password)`,表现为「测试失败但连接可用」。
+#[cfg(unix)]
+#[test]
+fn askpass_script_outputs_password_on_stdout() {
+    use std::os::unix::fs::PermissionsExt as _;
+
+    let password = Zeroizing::new("p@ss w0rd'\"$x`!&|<>".to_string());
+    let session = AskpassSession::new(&password).expect("askpass session");
+
+    // 脚本必须可执行(ssh 直接 exec,不经 shell)
+    let mode = std::fs::metadata(&session.script_path)
+        .expect("script metadata")
+        .permissions()
+        .mode();
+    assert_eq!(mode & 0o777, 0o700, "script must be 0700, got {mode:o}");
+
+    // 密码文件必须收紧到 0600
+    let pw_mode = std::fs::metadata(&session.password_path)
+        .expect("password metadata")
+        .permissions()
+        .mode();
+    assert_eq!(pw_mode & 0o777, 0o600, "password file must be 0600");
+
+    // 按 ssh 的方式执行脚本:只给 WARP_SSH_ASKPASS_FILE,读 stdout。
+    let out = std::process::Command::new(&session.script_path)
+        .env("WARP_SSH_ASKPASS_FILE", &session.password_path)
+        .output()
+        .expect("run askpass script");
+    assert!(out.status.success(), "script failed: {out:?}");
+    assert_eq!(
+        String::from_utf8_lossy(&out.stdout),
+        password.as_str(),
+        "askpass stdout must be the password verbatim (含特殊字符不被 shell 二次解析)"
+    );
+
+    // drop 后两个临时文件都要清理掉,不留密码在磁盘上。
+    let (pw, sc) = (session.password_path.clone(), session.script_path.clone());
+    drop(session);
+    assert!(!pw.exists(), "password file must be removed on drop");
+    assert!(!sc.exists(), "script must be removed on drop");
 }
