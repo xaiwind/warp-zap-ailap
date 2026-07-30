@@ -450,6 +450,7 @@ pub enum CLIAgentType {
     DeepSeek,
     Antigravity,
     Omp,
+    Grok,
     Unknown,
 }
 

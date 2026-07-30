@@ -262,6 +262,7 @@ fn test_detect_known_agents() {
                 ("agent", CLIAgent::CursorCli),
                 ("goose", CLIAgent::Goose),
                 ("omp", CLIAgent::Omp),
+                ("grok", CLIAgent::Grok),
             ] {
                 assert_eq!(
                     CLIAgent::detect(command, None, None, ctx),

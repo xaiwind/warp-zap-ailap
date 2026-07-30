@@ -137,6 +137,14 @@ const OMP_COLOR: ColorU = ColorU {
     a: 255,
 };
 
+/// Grok(xAI)品牌色(#000000,官方 Grok Build 使用纯黑底 + 白色标记)
+const GROK_COLOR: ColorU = ColorU {
+    r: 0,
+    g: 0,
+    b: 0,
+    a: 255,
+};
+
 /// Represents a CLI agent (e.g., Claude Code, Gemini CLI, Codex, Amp, Droid, OpenCode, Copilot, Pi, Auggie, Cursor, Goose)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Sequence, Serialize, Deserialize)]
 pub enum CLIAgent {
@@ -154,6 +162,8 @@ pub enum CLIAgent {
     DeepSeek,
     Antigravity,
     Omp,
+    /// xAI 的 Grok Build TUI(命令名 `grok`)。
+    Grok,
     /// Represents an unknown/custom CLI agent matched by user-configured regex patterns.
     Unknown,
 }
@@ -176,6 +186,7 @@ impl CLIAgent {
             CLIAgent::DeepSeek => "deepseek",
             CLIAgent::Antigravity => "agy",
             CLIAgent::Omp => "omp",
+            CLIAgent::Grok => "grok",
             CLIAgent::Unknown => "",
         }
     }
@@ -221,6 +232,7 @@ impl CLIAgent {
             CLIAgent::DeepSeek => "DeepSeek",
             CLIAgent::Antigravity => "Antigravity",
             CLIAgent::Omp => "Omp",
+            CLIAgent::Grok => "Grok",
             CLIAgent::Unknown => "CLI Agent",
         }
     }
@@ -242,6 +254,7 @@ impl CLIAgent {
             CLIAgent::DeepSeek => Some(Icon::DeepSeekLogo),
             CLIAgent::Antigravity => Some(Icon::AntigravityLogo),
             CLIAgent::Omp => Some(Icon::OmpLogo),
+            CLIAgent::Grok => Some(Icon::GrokLogo),
             CLIAgent::Unknown => None,
         }
     }
@@ -273,6 +286,7 @@ impl CLIAgent {
             CLIAgent::DeepSeek => &[SkillProvider::Agents],
             CLIAgent::Antigravity => &[SkillProvider::Agents],
             CLIAgent::Omp => &[SkillProvider::Agents],
+            CLIAgent::Grok => &[SkillProvider::Agents],
             CLIAgent::Unknown => &[],
         }
     }
@@ -316,6 +330,7 @@ impl CLIAgent {
             CLIAgent::DeepSeek => Some(DEEPSEEK_COLOR),
             CLIAgent::Antigravity => Some(ANTIGRAVITY_PURPLE),
             CLIAgent::Omp => Some(OMP_COLOR),
+            CLIAgent::Grok => Some(GROK_COLOR),
             CLIAgent::Unknown => None,
         }
     }
@@ -580,6 +595,7 @@ impl From<CLIAgent> for CLIAgentType {
             CLIAgent::DeepSeek => CLIAgentType::DeepSeek,
             CLIAgent::Antigravity => CLIAgentType::Antigravity,
             CLIAgent::Omp => CLIAgentType::Omp,
+            CLIAgent::Grok => CLIAgentType::Grok,
             CLIAgent::Unknown => CLIAgentType::Unknown,
         }
     }
