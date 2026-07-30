@@ -135,9 +135,7 @@ fn rich_input_submit_strategy(agent: CLIAgent) -> RichInputSubmitStrategy {
         | CLIAgent::Goose
         | CLIAgent::Omp
         | CLIAgent::Grok
-        | CLIAgent::Unknown => {
-            RichInputSubmitStrategy::Inline
-        }
+        | CLIAgent::Unknown => RichInputSubmitStrategy::Inline,
     }
 }
 
