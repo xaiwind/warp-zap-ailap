@@ -734,6 +734,10 @@ fn extend_common_cli_dirs(dirs: &mut Vec<PathBuf>) {
         home.join(".cargo/bin"),
         home.join(".bun/bin"),
         home.join(".local/bin"),
+        // pnpm 全局 bin 的默认位置(macOS 与 Linux)。GUI 启动的应用不继承 shell
+        // 的 PATH,所以 PNPM_HOME 对扫描不可见,这里按默认路径补上。
+        home.join("Library/pnpm"),
+        home.join(".local/share/pnpm"),
     ]);
 
     if let Ok(node_versions) = std::fs::read_dir(home.join(".nvm/versions/node")) {
