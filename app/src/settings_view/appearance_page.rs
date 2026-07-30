@@ -1524,7 +1524,7 @@ impl AppearanceSettingsPageView {
         let mut text_settings_widgets: Vec<Box<dyn SettingsWidget<View = Self>>> = vec![
             Box::new(TerminalFontWidget::default()),
             Box::new(AIFontWidget::default()),
-            Box::new(UIFontWidget::default()),
+            Box::new(UIFontWidget),
             Box::new(NotebookFontSizeWidget::default()),
             Box::new(MarkdownHeadingScaleWidget::default()),
         ];

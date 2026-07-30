@@ -371,30 +371,27 @@ impl SftpBrowserView {
             None => return,
         };
         let path = self.current_path.clone();
-        match sftp.list_dir(&path) {
-            Ok(mut entries) => {
-                entries.sort_by(|a, b| match (a.file_type, b.file_type) {
-                    (FileEntryType::Directory, FileEntryType::Directory) => {
-                        a.name.to_lowercase().cmp(&b.name.to_lowercase())
-                    }
-                    (
-                        FileEntryType::Directory,
-                        FileEntryType::File | FileEntryType::Symlink | FileEntryType::Other,
-                    ) => std::cmp::Ordering::Less,
-                    (
-                        FileEntryType::File | FileEntryType::Symlink | FileEntryType::Other,
-                        FileEntryType::Directory,
-                    ) => std::cmp::Ordering::Greater,
-                    (
-                        FileEntryType::File | FileEntryType::Symlink | FileEntryType::Other,
-                        FileEntryType::File | FileEntryType::Symlink | FileEntryType::Other,
-                    ) => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
-                });
-                self.entries = entries;
-                self.selected.clear();
-                self.sync_row_mouse_handles();
-            }
-            Err(_) => {}
+        if let Ok(mut entries) = sftp.list_dir(&path) {
+            entries.sort_by(|a, b| match (a.file_type, b.file_type) {
+                (FileEntryType::Directory, FileEntryType::Directory) => {
+                    a.name.to_lowercase().cmp(&b.name.to_lowercase())
+                }
+                (
+                    FileEntryType::Directory,
+                    FileEntryType::File | FileEntryType::Symlink | FileEntryType::Other,
+                ) => std::cmp::Ordering::Less,
+                (
+                    FileEntryType::File | FileEntryType::Symlink | FileEntryType::Other,
+                    FileEntryType::Directory,
+                ) => std::cmp::Ordering::Greater,
+                (
+                    FileEntryType::File | FileEntryType::Symlink | FileEntryType::Other,
+                    FileEntryType::File | FileEntryType::Symlink | FileEntryType::Other,
+                ) => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
+            });
+            self.entries = entries;
+            self.selected.clear();
+            self.sync_row_mouse_handles();
         }
         let path = self.current_path.display();
         let title = format!("SFTP: {path}");
@@ -653,7 +650,7 @@ impl SftpBrowserView {
     /// 返回上级目录
     fn go_up(&mut self, ctx: &mut ViewContext<Self>) {
         if let Some(parent) = self.current_path.parent() {
-            let parent = normalize_remote_path(&parent.to_path_buf());
+            let parent = normalize_remote_path(parent);
             if parent != self.current_path {
                 self.navigate_to(parent, ctx);
             }
@@ -1007,7 +1004,7 @@ impl SftpBrowserView {
             .iter()
             .enumerate()
             .filter(|(_, entry)| {
-                self.search_filter.as_ref().map_or(true, |filter| {
+                self.search_filter.as_ref().is_none_or(|filter| {
                     entry.name.to_lowercase().contains(&filter.to_lowercase())
                 })
             })
@@ -1384,18 +1381,18 @@ fn safe_join_name(parent: &Path, name: &str) -> Option<PathBuf> {
 }
 
 /// 构建重命名后的完整路径
-fn build_rename_path(original_path: &PathBuf, new_name: &str) -> Option<PathBuf> {
+fn build_rename_path(original_path: &Path, new_name: &str) -> Option<PathBuf> {
     let parent = original_path.parent().unwrap_or(Path::new("/"));
     safe_join_name(parent, new_name).map(|p| normalize_remote_path(&p))
 }
 
 /// 构建新建文件夹的完整路径
-fn build_new_folder_path(parent_path: &PathBuf, folder_name: &str) -> Option<PathBuf> {
+fn build_new_folder_path(parent_path: &Path, folder_name: &str) -> Option<PathBuf> {
     safe_join_name(parent_path, folder_name).map(|p| normalize_remote_path(&p))
 }
 
 /// 构建上传后的远程路径
-fn build_upload_remote_path(current_path: &PathBuf, local_file_name: &str) -> Option<PathBuf> {
+fn build_upload_remote_path(current_path: &Path, local_file_name: &str) -> Option<PathBuf> {
     let name = Path::new(local_file_name)
         .file_name()
         .map(|n| n.to_string_lossy().to_string())

@@ -98,11 +98,10 @@ impl ProxyConfig {
                     proxy = proxy.basic_auth(&self.username, &self.password);
                 }
 
-                if !self.no_proxy.trim().is_empty() {
-                    if let Some(no_proxy) = reqwest::NoProxy::from_string(self.no_proxy.trim()) {
+                if !self.no_proxy.trim().is_empty()
+                    && let Some(no_proxy) = reqwest::NoProxy::from_string(self.no_proxy.trim()) {
                         proxy = proxy.no_proxy(Some(no_proxy));
                     }
-                }
 
                 builder = builder.proxy(proxy);
                 builder

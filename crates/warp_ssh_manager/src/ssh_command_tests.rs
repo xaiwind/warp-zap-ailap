@@ -501,7 +501,8 @@ fn askpass_script_outputs_password_on_stdout() {
     assert_eq!(pw_mode & 0o777, 0o600, "password file must be 0600");
 
     // 按 ssh 的方式执行脚本:只给 WARP_SSH_ASKPASS_FILE,读 stdout。
-    let out = std::process::Command::new(&session.script_path)
+    // 走 command::blocking 而非 std::process(.clippy.toml 禁用后者)。
+    let out = command::blocking::Command::new(&session.script_path)
         .env("WARP_SSH_ASKPASS_FILE", &session.password_path)
         .output()
         .expect("run askpass script");

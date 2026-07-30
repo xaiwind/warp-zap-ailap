@@ -305,7 +305,7 @@ mod tests {
             app.add_singleton_model(|_| crate::workspace::ToastStack);
 
             let temp_db = std::env::temp_dir().join("warp_sftp_ctx_test.sqlite");
-            let _ = warp_ssh_manager::set_database_path(temp_db);
+            warp_ssh_manager::set_database_path(temp_db);
 
             let (_, view) = app.add_window(warpui::platform::WindowStyle::NotStealFocus, |ctx| {
                 crate::sftp_manager::browser::SftpBrowserView::new("test-node".to_string(), ctx)

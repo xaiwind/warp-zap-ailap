@@ -2067,10 +2067,8 @@ impl TypedActionView for SshServerView {
                     if self.managed_onekey_credential_id.is_none() || !self.show_onekey_manager {
                         self.set_managed_onekey_form_from_credential(&credential, ctx);
                     }
-                } else {
-                    if !self.show_onekey_manager {
-                        self.clear_managed_onekey_form(ctx);
-                    }
+                } else if !self.show_onekey_manager {
+                    self.clear_managed_onekey_form(ctx);
                 }
                 self.rebuild_onekey_credential_dropdown(ctx);
                 ctx.notify();

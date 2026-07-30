@@ -4,7 +4,7 @@
 //! author: logic
 //! date: 2026-05-26
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use warp_core::ui::appearance::Appearance;
 use warp_core::ui::icons::Icon;
@@ -179,6 +179,9 @@ fn render_cancel_button(
 /// 渲染描述性确认对话框（标题 + 描述 + 确认/取消按钮）
 ///
 /// 适用于删除确认、移动确认、覆盖确认等场景。
+// 8 个参数中有 3 个是按钮状态句柄。抽成参数对象是更干净的做法,
+// 但这是私有渲染辅助函数,每个参数语义都不同,收益有限。
+#[allow(clippy::too_many_arguments)]
 fn render_confirm_dialog(
     title: &str,
     description: &str,
@@ -506,8 +509,8 @@ fn render_file_details(
 
 /// 渲染移动对话框
 fn render_move_dialog(
-    source: &PathBuf,
-    target_dir: &PathBuf,
+    source: &Path,
+    target_dir: &Path,
     appearance: &Appearance,
     confirm_btn_state: MouseStateHandle,
     cancel_btn_state: MouseStateHandle,
@@ -533,9 +536,11 @@ fn render_move_dialog(
 }
 
 /// 渲染覆盖确认对话框
+// 同 render_confirm_dialog:3 个按钮状态句柄撑到 8 个参数。
+#[allow(clippy::too_many_arguments)]
 fn render_overwrite_confirm(
     _source: &PathBuf,
-    target: &PathBuf,
+    target: &Path,
     _file_size: u64,
     direction: TransferDirection,
     appearance: &Appearance,

@@ -5,7 +5,7 @@
 //! author: logic
 //! date: 2026-05-30
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use warp_core::ui::appearance::Appearance;
@@ -31,7 +31,7 @@ fn initialize_app(app: &mut warpui::App) {
     app.add_singleton_model(|_| ToastStack);
 
     let temp_db = std::env::temp_dir().join("warp_sftp_integration_test.sqlite");
-    let _ = warp_ssh_manager::set_database_path(temp_db);
+    warp_ssh_manager::set_database_path(temp_db);
 }
 
 /// 创建 SftpBrowserView 并放入窗口（Disconnected 状态）
@@ -120,7 +120,7 @@ fn test_connected_state_with_mock_backend() {
                 "应处于 Connected 状态"
             );
             assert_eq!(v.entries.len(), 2, "应列出 2 个文件");
-            assert!(v.current_path == PathBuf::from("/"), "当前路径应为 /");
+            assert!(v.current_path == Path::new("/"), "当前路径应为 /");
         });
     });
 }
@@ -334,7 +334,7 @@ fn test_go_up_from_subdirectory() {
 
         view.read(&app, |v, _| {
             assert!(
-                v.current_path == PathBuf::from("/")
+                v.current_path == Path::new("/")
                     || v.entries.iter().any(|e| e.name == "subdir"),
                 "GoUp 应返回上级目录"
             );

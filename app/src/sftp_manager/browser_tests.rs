@@ -31,7 +31,7 @@ fn initialize_app(app: &mut warpui::App) {
 
     // SSH 管理器需要一个 SQLite 路径；使用临时文件，查询失败不 panic
     let temp_db = std::env::temp_dir().join("warp_sftp_test.sqlite");
-    let _ = warp_ssh_manager::set_database_path(temp_db);
+    warp_ssh_manager::set_database_path(temp_db);
 }
 
 /// 创建 SftpBrowserView 并放入窗口

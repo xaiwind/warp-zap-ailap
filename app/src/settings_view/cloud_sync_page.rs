@@ -262,7 +262,7 @@ impl CloudSyncPageView {
         );
 
         let mut me = Self {
-            page: PageType::new_monolith(CloudSyncPageWidget::default(), None, false),
+            page: PageType::new_monolith(CloudSyncPageWidget, None, false),
             platform_dropdown,
             token_editor,
             save_state: MouseStateHandle::default(),
@@ -1401,7 +1401,7 @@ impl SettingsWidget for CloudSyncPageWidget {
             SyncState::TokenValid { .. } => Some(theme.accent().into_solid()),
             SyncState::Success { .. } => Some(theme.accent().into_solid()),
             SyncState::AlreadyUpToDate { .. } => Some(theme.active_ui_text_color().into_solid()),
-            SyncState::Failed { .. } => Some(theme.ui_error_color().into()),
+            SyncState::Failed { .. } => Some(theme.ui_error_color()),
             SyncState::Conflict { .. } => Some(theme.active_ui_text_color().into_solid()),
             SyncState::Syncing { .. } => Some(theme.active_ui_text_color().into_solid()),
         };

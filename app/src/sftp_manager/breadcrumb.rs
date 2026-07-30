@@ -4,7 +4,7 @@
 //! author: logic
 //! date: 2026-05-26
 
-use std::path::{Component, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use warp_core::ui::appearance::Appearance;
 use warpui::elements::{ConstrainedBox, Container, Hoverable, SavePosition, Text};
@@ -18,7 +18,7 @@ use crate::ui_components::icons::Icon;
 ///
 /// 遍历路径的各个组件，每段可点击触发 NavigateTo 动作。
 /// 段之间用 ChevronRight 图标分隔，空路径显示 "/"。
-pub fn render_breadcrumb(current_path: &PathBuf, appearance: &Appearance) -> Vec<Box<dyn Element>> {
+pub fn render_breadcrumb(current_path: &Path, appearance: &Appearance) -> Vec<Box<dyn Element>> {
     let theme = appearance.theme();
     let text_color = theme.active_ui_text_color();
     let sub_color = theme.sub_text_color(theme.background());
@@ -48,7 +48,7 @@ pub fn render_breadcrumb(current_path: &PathBuf, appearance: &Appearance) -> Vec
         // 分隔符（第一段之后添加）
         if i > 0 {
             let sep_icon =
-                ConstrainedBox::new(Icon::ChevronRight.to_warpui_icon(sub_color.into()).finish())
+                ConstrainedBox::new(Icon::ChevronRight.to_warpui_icon(sub_color).finish())
                     .with_width(12.0)
                     .with_height(12.0)
                     .finish();

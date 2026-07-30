@@ -26,7 +26,7 @@ fn derive_key(token: &str) -> [u8; 32] {
     hasher.update(token.as_bytes());
     let intermediate: [u8; 32] = hasher.finalize().into();
     let mut hasher2 = Sha256::new();
-    hasher2.update(&intermediate);
+    hasher2.update(intermediate);
     hasher2.finalize().into()
 }
 
@@ -105,7 +105,7 @@ mod tests {
     #[test]
     fn test_decrypt_data_too_short() {
         // 8 bytes < 12 bytes (nonce size)
-        let short = BASE64.encode(&[0u8; 8]);
+        let short = BASE64.encode([0u8; 8]);
         let result = decrypt(TEST_TOKEN, &short);
         assert!(result.is_err());
     }

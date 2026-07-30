@@ -316,6 +316,12 @@ impl GistClient {
     }
 }
 
+impl Default for GistClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl GistOps for GistClient {
     async fn validate_token(
         &self,

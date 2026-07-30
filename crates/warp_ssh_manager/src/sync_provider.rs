@@ -82,8 +82,14 @@ impl SshSyncProvider {
     /// 创建新的 SshSyncProvider 实例
     pub fn new() -> Self {
         Self {
-            secret_store: KeychainSecretStore::default(),
+            secret_store: KeychainSecretStore,
         }
+    }
+}
+
+impl Default for SshSyncProvider {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -398,6 +404,7 @@ struct WrittenSecret {
 /// 真正的"回滚":对每个已被覆盖的条目:
 /// - prior_value=Some → 写回旧值,避免用户既有密码被吞
 /// - prior_value=None → delete,避免 orphan
+///
 /// 任何步骤失败仅 log,不阻塞调用方(尽力而为)。
 fn rollback_keychain_writes<S: SshSecretStore + ?Sized>(store: &S, written: &[WrittenSecret]) {
     for entry in written {
@@ -446,7 +453,7 @@ fn encrypt_optional(token: &str, value: Option<&str>) -> Result<Option<String>, 
     match value {
         None => Ok(None),
         // 空字符串视为"无密码",不上传(与既往行为兼容,避免空字符串密文污染)
-        Some(s) if s.is_empty() => Ok(None),
+        Some("") => Ok(None),
         Some(s) => Ok(Some(
             crypto::encrypt(token, s).map_err(|e| SyncEngineError::Crypto(e.to_string()))?,
         )),

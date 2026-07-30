@@ -27,6 +27,9 @@ use super::{alacritty_parser::AlacrittyConfig, model::TerminalType};
 #[cfg(target_os = "macos")]
 use super::iterm_parser::ITermProfile;
 
+// 体积差来自变体本身的语义(2 个主题 vs 1 个),不是设计失误。
+// 该枚举仅在设置导入时构造一次,Box 化只会给一次性路径添加间接层。
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum ThemeType {
     LightAndDark { light: WarpTheme, dark: WarpTheme },

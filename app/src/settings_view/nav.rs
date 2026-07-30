@@ -14,8 +14,6 @@ use super::{
     SettingsSection,
 };
 
-/// The font size for subpage items inside an umbrella.
-
 /// Left margin for subpage items inside an umbrella (top-level margin + indent).
 const SUBPAGE_LEFT_MARGIN: f32 = NAV_ITEM_LEFT_MARGIN + 12.;
 

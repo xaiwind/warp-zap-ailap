@@ -26,10 +26,6 @@ use crate::terminal::input::{MenuPositioning, MenuPositioningProvider};
 use crate::terminal::view::ambient_agent::AmbientAgentViewModel;
 use crate::view_components::action_button::{ActionButton, ActionButtonTheme, ButtonSize};
 
-/// Font size for the header row (Figma: 12px).
-
-/// Font size for harness item rows (Figma: 14px).
-
 /// Horizontal padding inside menu rows (Figma: 16px).
 const MENU_HORIZONTAL_PADDING: f32 = 16.;
 

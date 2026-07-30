@@ -367,7 +367,7 @@ impl SkillManagerPanel {
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
             .with_spacing(4.0)
             .with_child(self.render_filter_button(
-                crate::t!("skill-manager-filter-all").into(),
+                crate::t!("skill-manager-filter-all"),
                 active_filter.is_none(),
                 None,
                 appearance,
@@ -398,7 +398,7 @@ impl SkillManagerPanel {
             .with_cross_axis_alignment(CrossAxisAlignment::Center)
             .with_spacing(4.0)
             .with_child(self.render_filter_button(
-                crate::t!("skill-manager-filter-all").into(),
+                crate::t!("skill-manager-filter-all"),
                 self.provider_filter.is_none(),
                 None,
                 appearance,

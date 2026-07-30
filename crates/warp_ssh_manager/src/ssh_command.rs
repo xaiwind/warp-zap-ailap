@@ -55,14 +55,12 @@ pub fn build_ssh_args(server: &SshServerInfo) -> Vec<String> {
         args.push("-p".into());
         args.push(server.port.to_string());
     }
-    if matches!(server.auth_type, AuthType::Key | AuthType::OneKey) {
-        if let Some(path) = server.key_path.as_deref() {
-            if !path.is_empty() {
+    if matches!(server.auth_type, AuthType::Key | AuthType::OneKey)
+        && let Some(path) = server.key_path.as_deref()
+            && !path.is_empty() {
                 args.push("-i".into());
                 args.push(path.to_string());
             }
-        }
-    }
     let target = if server.username.is_empty() {
         server.host.clone()
     } else {
@@ -218,11 +216,10 @@ async fn test_password_auth_unix(
 
     // best-effort:askpass 生效时 ssh 根本不读 stdin,write_all 可能拿到
     // EPIPE / 阻塞,这里不能让它决定测试结果。
-    if let Some(mut stdin) = child.stdin.take() {
-        if let Err(e) = stdin.write_all(&stdin_bytes).await {
+    if let Some(mut stdin) = child.stdin.take()
+        && let Err(e) = stdin.write_all(&stdin_bytes).await {
             log::debug!("ssh test: stdin password write skipped ({e}); relying on SSH_ASKPASS");
         }
-    }
 
     // timeout 命中时 child 被 drop → kill_on_drop 自动 kill ssh。
     let output = match tokio::time::timeout(TEST_TIMEOUT, child.output()).await {

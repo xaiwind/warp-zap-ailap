@@ -6524,7 +6524,7 @@ impl CLIAgentWidget {
             .per_agent_chip_states
             .borrow_mut()
             .entry((agent, dimension))
-            .or_insert_with(MouseStateHandle::default)
+            .or_default()
             .clone();
 
         let mut chip = Hoverable::new(mouse, move |_| {

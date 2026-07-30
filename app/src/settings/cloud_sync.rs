@@ -154,7 +154,7 @@ mod tests {
     #[test]
     fn test_sync_platform_clone() {
         let a = SyncPlatformSetting::GitHub;
-        let b = a.clone();
+        let b = a;
         assert_eq!(a, b);
     }
 }

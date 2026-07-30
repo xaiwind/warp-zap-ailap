@@ -3875,16 +3875,14 @@ pub async fn generate_byop_output(
                                 }
                             }
                         }
+                    } else if let Some(id) = text_msg_id.clone() {
+                        yield Ok(make_append_event(&current_task_id, &id, AppendKind::Text(c.content)));
                     } else {
-                        if let Some(id) = text_msg_id.clone() {
-                            yield Ok(make_append_event(&current_task_id, &id, AppendKind::Text(c.content)));
-                        } else {
-                            let new_id = Uuid::new_v4().to_string();
-                            let mut msg = make_agent_output_message(&current_task_id, &request_id, c.content);
-                            msg.id = new_id.clone();
-                            text_msg_id = Some(new_id);
-                            yield Ok(make_add_messages_event(&current_task_id, vec![msg]));
-                        }
+                        let new_id = Uuid::new_v4().to_string();
+                        let mut msg = make_agent_output_message(&current_task_id, &request_id, c.content);
+                        msg.id = new_id.clone();
+                        text_msg_id = Some(new_id);
+                        yield Ok(make_add_messages_event(&current_task_id, vec![msg]));
                     }
                 }
                 ChatStreamEvent::Chunk(_) => {}

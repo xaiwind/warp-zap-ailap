@@ -16568,7 +16568,7 @@ impl Workspace {
                 .borrow_mut();
             let handle = states
                 .entry(agent_key.clone())
-                .or_insert_with(MouseStateHandle::default)
+                .or_default()
                 .clone();
 
             let icon = agent.icon().unwrap_or(icons::Icon::LayoutAlt01);

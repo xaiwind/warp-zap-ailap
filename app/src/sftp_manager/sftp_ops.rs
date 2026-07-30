@@ -501,10 +501,9 @@ fn build_auth_method(
 
 /// 展开路径中的 ~ 为用户主目录
 fn shellexpand_path(path: &str) -> String {
-    if path.starts_with("~/") {
+    if let Some(suffix) = path.strip_prefix("~/") {
         if let Some(home) = dirs::home_dir() {
             let home_path = home.display();
-            let suffix = &path[2..];
             return format!("{home_path}/{suffix}");
         }
     }
@@ -524,7 +523,7 @@ pub(crate) fn bool_to_rwx(read: bool, write: bool, exec: bool) -> String {
 ///
 /// 远程服务器（Linux）只接受正斜杠路径分隔符，
 /// 在 Windows 上 PathBuf::join 会产生反斜杠，必须转换。
-pub(crate) fn normalize_remote_path(path: &PathBuf) -> PathBuf {
+pub(crate) fn normalize_remote_path(path: &Path) -> PathBuf {
     PathBuf::from(path.to_string_lossy().replace('\\', "/"))
 }
 

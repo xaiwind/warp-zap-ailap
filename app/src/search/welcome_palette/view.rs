@@ -66,6 +66,8 @@ const MAX_PROJECTS_IN_ZERO_STATE: usize = 4;
 const MAX_ITEMS_IN_ZERO_STATE: usize = 5;
 
 #[derive(Debug)]
+// 同 command_palette:UI action 枚举,Box 化得不偿失。
+#[allow(clippy::large_enum_variant)]
 pub enum Action {
     ResultClicked { action: CommandPaletteItemAction },
     ParentAction { action: WelcomeViewAction },

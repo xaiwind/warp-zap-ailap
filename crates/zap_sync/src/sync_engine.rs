@@ -33,6 +33,12 @@ impl SyncEngine<GistClient> {
     }
 }
 
+impl Default for SyncEngine<GistClient> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<C: GistOps> SyncEngine<C> {
     /// 使用自定义 GistOps 实现创建引擎
     pub fn with_client(client: C) -> Self {

@@ -84,6 +84,9 @@ struct ViewState {
 }
 
 #[derive(Debug)]
+// 最大变体 208 字节。Box 起来会给每次点击加一次堆分配 —— 对用户触发
+// 频率的 UI 事件而言是反向优化,故显式豁免。
+#[allow(clippy::large_enum_variant)]
 pub enum Action {
     ResultClicked { action: CommandPaletteItemAction },
     Close,

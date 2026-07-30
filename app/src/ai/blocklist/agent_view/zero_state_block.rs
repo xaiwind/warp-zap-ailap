@@ -539,7 +539,7 @@ fn render_title_and_description(props: HeaderProps, app: &AppContext) -> Vec<Box
             let fill = if state.is_hovered() {
                 theme.main_text_color(bg).into_solid()
             } else {
-                theme.sub_text_color(bg.into()).into_solid()
+                theme.sub_text_color(bg).into_solid()
             };
             Container::new(
                 ConstrainedBox::new(Icon::X.to_warpui_icon(fill.into()).finish())
